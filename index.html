@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d18">
+  <title>WebP Studio v3</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">W</div>
+      <div class="brand-copy">
+        <strong>WebP Studio <span class="version">v3</span></strong>
+        <span>Batch Image Optimizer</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="engineBadge" class="engine-badge">Detectando motor…</span>
+      <span class="privacy-pill">🔒 100% local</span>
+      <button id="addMoreBtn" class="btn btn-ghost" disabled>+ Agregar</button>
+      <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="main-column">
+      <section id="emptyState" class="empty-state">
+        <div id="dropzone" class="dropzone" tabindex="0">
+          <div class="drop-art">
+            <svg viewBox="0 0 96 96" aria-hidden="true">
+              <rect x="14" y="17" width="68" height="62" rx="18" fill="none" stroke="currentColor" stroke-width="3"/>
+              <path d="M26 60l15-15 10 10 9-9 11 11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="34" cy="34" r="6" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="eyebrow">OPTIMIZADOR POR LOTES</span>
+          <h1>Convierte y optimiza imágenes con una experiencia tipo Squoosh</h1>
+          <p>Arrastra múltiples JPG, PNG o WebP. Ajusta calidad, tamaño, rotación y compara el resultado antes de descargar.</p>
+          <button id="selectBtn" class="btn btn-primary btn-large">Seleccionar imágenes</button>
+          <small>Privacidad: tus archivos nunca salen de este dispositivo.</small>
+        </div>
+      </section>
+
+      <section id="editorState" class="editor-state hidden">
+        <div class="editor-toolbar">
+          <div class="editor-file">
+            <strong id="selectedName">—</strong>
+            <span id="selectedDimensions">—</span>
+          </div>
+          <div class="toolbar-actions">
+            <button id="rotateLeftBtn" class="tool-btn" title="Girar 90° a la izquierda">↶</button>
+            <button id="rotateRightBtn" class="tool-btn" title="Girar 90° a la derecha">↷</button>
+            <span class="tool-separator"></span>
+            <button id="zoomOutBtn" class="tool-btn" title="Alejar">−</button>
+            <span id="zoomLabel" class="zoom-label">100%</span>
+            <button id="zoomInBtn" class="tool-btn" title="Acercar">+</button>
+            <button id="fitBtn" class="tool-btn wide">Ajustar</button>
+          </div>
+        </div>
+
+        <div id="compareStage" class="compare-stage checkerboard">
+          <div id="panLayer" class="pan-layer">
+            <canvas id="originalCanvas" class="compare-canvas"></canvas>
+            <div id="convertedClip" class="converted-clip">
+              <canvas id="convertedCanvas" class="compare-canvas converted-canvas"></canvas>
+            </div>
+            <div id="compareDivider" class="compare-divider">
+              <span class="compare-handle">↔</span>
+            </div>
+          </div>
+
+          <div class="compare-label left">
+            <strong>Original</strong>
+            <span id="originalBadge">—</span>
+          </div>
+          <div class="compare-label right">
+            <strong>Resultado</strong>
+            <span id="convertedBadge">Vista previa</span>
+          </div>
+
+          <input id="compareSlider" class="compare-slider" type="range" min="0" max="100" value="50" aria-label="Comparador visual">
+        </div>
+
+        <div class="editor-bottom">
+          <div class="selected-stats">
+            <div><span>Original</span><strong id="selectedOriginalSize">—</strong></div>
+            <div><span>Optimizado</span><strong id="selectedConvertedSize">—</strong></div>
+            <div><span>Ahorro</span><strong id="selectedSaving">—</strong></div>
+            <div><span>Salida</span><strong id="selectedOutputDims">—</strong></div>
+          </div>
+          <div class="selected-actions">
+            <button id="refreshPreviewBtn" class="btn btn-ghost">Actualizar vista previa</button>
+            <button id="convertSelectedBtn" class="btn btn-primary">Convertir</button>
+            <button id="downloadSelectedBtn" class="btn btn-success" disabled>Descargar</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="batchPanel" class="batch-panel hidden">
+        <div class="batch-head">
+          <div>
+            <h2>Lote de imágenes</h2>
+            <p id="batchSummary">0 archivos</p>
+          </div>
+          <div class="batch-actions">
+            <button id="convertAllBtn" class="btn btn-primary">Convertir todas</button>
+            <button id="downloadZipBtn" class="btn btn-success" disabled>Descargar ZIP</button>
+            <button id="clearBtn" class="btn btn-ghost">Limpiar</button>
+          </div>
+        </div>
+
+        <div class="progress-shell">
+          <i id="globalProgressBar"></i>
+        </div>
+        <div id="thumbRail" class="thumb-rail"></div>
+      </section>
+    </section>
+
+    <aside class="settings-panel">
+      <div class="settings-title">
+        <div>
+          <h2>Optimización</h2>
+          <p>Configuración global del lote</p>
+        </div>
+        <span id="formatPill" class="format-pill">WEBP</span>
+      </div>
+
+      <div class="setting-block">
+        <label class="small-label" for="format">Formato de salida</label>
+        <select id="format" class="select">
+          <option value="image/webp">WebP</option>
+          <option value="image/jpeg">JPEG</option>
+          <option value="image/png">PNG</option>
+        </select>
+      </div>
+
+      <div id="qualityBlock" class="setting-block">
+        <div class="setting-row">
+          <label for="quality">Calidad</label>
+          <output id="qualityValue">82</output>
+        </div>
+        <input id="quality" class="range" type="range" min="1" max="100" value="82">
+        <div class="range-scale"><span>Menos peso</span><span>Mayor calidad</span></div>
+        <div class="preset-grid">
+          <button class="preset" data-quality="95">Máxima <small>95</small></button>
+          <button class="preset active" data-quality="82">Alta <small>82</small></button>
+          <button class="preset" data-quality="72">Equilibrada <small>72</small></button>
+          <button class="preset" data-quality="60">Ligera <small>60</small></button>
+        </div>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="setting-block">
+        <label class="toggle-row">
+          <div><strong>Redimensionar</strong><small>Cambiar dimensiones de salida</small></div>
+          <input id="resizeToggle" type="checkbox">
+        </label>
+        <div id="resizeBox" class="resize-box is-disabled">
+          <div class="dimension-grid">
+            <label>
+              <span>Ancho máximo</span>
+              <div class="input-unit"><input id="resizeWidth" type="number" min="1" max="20000" value="1920"><em>px</em></div>
+            </label>
+            <label>
+              <span>Alto máximo</span>
+              <div class="input-unit"><input id="resizeHeight" type="number" min="1" max="20000" value="1080"><em>px</em></div>
+            </label>
+          </div>
+          <label class="check-row"><input id="keepAspect" type="checkbox" checked> Mantener proporción</label>
+          <label class="check-row"><input id="noUpscale" type="checkbox" checked> No ampliar imágenes pequeñas</label>
+        </div>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="setting-block">
+        <label class="small-label" for="backgroundMode">Fondo para transparencia</label>
+        <select id="backgroundMode" class="select">
+          <option value="transparent">Conservar transparencia</option>
+          <option value="white">Fondo blanco</option>
+          <option value="black">Fondo negro</option>
+        </select>
+      </div>
+
+      <div class="setting-block compact-gap">
+        <label class="toggle-row">
+          <div><strong>Vista previa automática</strong><small>Actualiza al cambiar calidad o tamaño</small></div>
+          <input id="autoPreview" type="checkbox" checked>
+        </label>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="setting-block">
+        <h3>Renombrado por lote</h3>
+
+        <label class="small-label" for="renameMode">Modo de renombrado</label>
+        <select id="renameMode" class="select">
+          <option value="original">Conservar nombre original</option>
+          <option value="base">Usar nombre base</option>
+          <option value="replace">Reemplazar texto del nombre original</option>
+        </select>
+
+        <div id="baseRenameOptions" class="rename-subgroup is-hidden">
+          <label class="small-label" for="batchBaseName">Nombre base</label>
+          <div class="input-unit">
+            <input id="batchBaseName" type="text" placeholder="ej. producto">
+            <em id="renameExtHint">.webp</em>
+          </div>
+        </div>
+
+        <div id="replaceRenameOptions" class="rename-subgroup is-hidden">
+          <div class="dimension-grid">
+            <label><span>Buscar texto</span><div class="input-unit"><input id="replaceFind" type="text" placeholder="ej. IMG_"></div></label>
+            <label><span>Reemplazar por</span><div class="input-unit"><input id="replaceWith" type="text" placeholder="ej. foto-"></div></label>
+          </div>
+        </div>
+
+        <div class="rename-subgroup">
+          <div class="dimension-grid">
+            <label><span>Prefijo</span><div class="input-unit"><input id="renamePrefix" type="text" placeholder="ej. web-"></div></label>
+            <label><span>Sufijo</span><div class="input-unit"><input id="renameSuffix" type="text" placeholder="ej. -opt"></div></label>
+          </div>
+          <label class="check-row"><input id="renameNumbering" type="checkbox" checked> Agregar numeración automática</label>
+          <div id="numberingOptions" class="dimension-grid rename-number-grid">
+            <label><span>Inicio</span><div class="input-unit"><input id="numberStart" type="number" min="0" value="1"></div></label>
+            <label><span>Dígitos</span><div class="input-unit"><input id="numberDigits" type="number" min="1" max="8" value="3"></div></label>
+          </div>
+        </div>
+
+        <p id="renamePreview" class="rename-help">Vista previa del nombre de salida.</p>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="setting-block">
+        <div class="section-mini-head">
+          <h3>Presets personalizados</h3>
+          <button id="savePresetBtn" class="mini-btn">Guardar actual</button>
+        </div>
+        <div id="customPresets" class="custom-presets">
+          <p class="empty-presets">Aún no hay presets guardados.</p>
+        </div>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="setting-block">
+        <h3>Motor de procesamiento</h3>
+        <div class="feature-row">
+          <span><strong>Web Worker</strong><small>Evita bloquear la interfaz</small></span><b id="workerStatus">…</b>
+        </div>
+        <div class="feature-row">
+          <span><strong>Metadatos</strong><small>Se eliminan al exportar</small></span><b>✓</b>
+        </div>
+        <div class="feature-row">
+          <span><strong>Procesamiento local</strong><small>Sin servidor ni subida</small></span><b>✓</b>
+        </div>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="summary-card">
+        <div><span>Archivos</span><strong id="summaryCount">0</strong></div>
+        <div><span>Tamaño original</span><strong id="summaryOriginal">0 B</strong></div>
+        <div><span>Optimizado</span><strong id="summaryConverted">0 B</strong></div>
+        <div class="saving-line"><span>Ahorro</span><strong id="summarySaving">0%</strong></div>
+      </div>
+    </aside>
+  </main>
+
+  <template id="thumbTemplate">
+    <article class="thumb-card">
+      <button class="thumb-select">
+        <img class="thumb-image" alt="">
+        <span class="thumb-overlay"><b class="thumb-status">Pendiente</b></span>
+      </button>
+      <div class="thumb-info">
+        <strong class="thumb-name"></strong>
+        <span class="thumb-meta"></span>
+      </div>
+      <button class="thumb-remove" title="Quitar">×</button>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "WebP Studio v3 — Batch Image Optimizer",
+  "short_name": "WebP Studio v3",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#060a12",
+  "theme_color": "#080d18",
+  "description": "Optimizador local de imágenes por lotes con comparador, Web Worker, presets y exportación ZIP."
+}
