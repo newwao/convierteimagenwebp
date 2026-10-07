@@ -1,4 +1,4 @@
-# WebP Studio v3
+# WebP Studio v3.3
 
 Tercera versión del optimizador de imágenes por lotes.
 
@@ -29,7 +29,7 @@ Tercera versión del optimizador de imágenes por lotes.
 
 Copia la carpeta:
 
-    webp-studio-v3
+    webp-studio-v3.3
 
 dentro de:
 
@@ -37,7 +37,7 @@ dentro de:
 
 Luego abre:
 
-    http://webp-studio-v3.test:8080
+    http://webp-studio-v3.3.test:8080
 
 si Apache está usando el puerto 8080.
 
@@ -60,3 +60,18 @@ Esta versión no anuncia AVIF porque el soporte de codificación AVIF desde Canv
 - Vista previa del nombre final.
 - Se aplica a descarga individual y ZIP.
 - Se guarda dentro de presets personalizados.
+
+
+## Novedades v3.3
+- Botón Ayuda con guía de uso y cierre mediante Escape.
+- Versión completa visible en cabecera, título y aplicación instalada.
+- Visor limitado al espacio disponible y apertura ajustada; miniaturas sin recortes.
+- Comparador alineado y porcentaje de zoom real.
+- Pegar imágenes con Ctrl+V / Cmd+V o botón Pegar imagen.
+- Copiar original o resultado convertido al portapapeles como PNG.
+- Caché offline actualizada para evitar cargar recursos de versiones anteriores.
+
+## Actualizar e iniciar
+Extrae el ZIP. Sustituye los archivos de la aplicación por los de esta carpeta, incluido index.html (el archivo recibido como index(1).html se ha normalizado). Abre index.html desde tu servidor local o hosting. Si ves la versión anterior, recarga con Ctrl+F5. Conserva el mismo dominio para mantener los presets.
+
+Los botones Copiar/Pegar requieren HTTPS o localhost y permisos del navegador. En un dominio local HTTP de Laragon, prueba Ctrl+V o selecciona el archivo. Copiar utiliza PNG para compatibilidad; Descargar conserva el formato elegido. No se importan enlaces de texto.

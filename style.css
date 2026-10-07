@@ -25,3 +25,19 @@ button,input,select{font:inherit}.hidden{display:none!important}button{cursor:po
 .rename-help{font-size:9px;line-height:1.5;color:var(--muted2);margin:8px 2px 0}
 
 .rename-subgroup{margin-top:12px}.rename-subgroup.is-hidden{display:none}.rename-number-grid{margin-top:9px}
+
+/* v3.3: bounded viewport prevents intrinsic canvas dimensions expanding it. */
+.version{font-size:12px;padding:3px 8px;font-weight:800}
+.compare-stage{flex:none;height:clamp(280px,60vh,620px);min-height:0}
+.pan-layer{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.thumb-image{object-fit:contain}
+.topbar{height:auto;min-height:72px;gap:12px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.top-actions{flex-wrap:wrap}
+#helpDialog{color:var(--text);background:var(--panel);border:1px solid var(--line2);border-radius:20px;padding:26px;width:min(720px,calc(100% - 24px));max-height:85vh;box-shadow:var(--shadow)}
+#helpDialog::backdrop{background:rgba(0,0,0,.75)}
+.help-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.help-head h2{margin:8px 0 16px}.help-head form{flex-shrink:0}
+.help-steps{padding-left:23px;line-height:1.65;color:#bfcee0}.help-steps li{padding:0 0 14px 6px}.help-steps strong{color:var(--text)}
+.help-note{font-size:13px;line-height:1.6;background:var(--panel3);border-radius:12px;padding:16px;color:#c7dbf7}
+.app-notice{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:100;max-width:calc(100% - 28px);width:max-content;background:#183457;border:1px solid #5b8cff;border-radius:12px;padding:14px 20px;box-shadow:var(--shadow);font-size:14px}
+button:focus-visible{outline:2px solid #a7c4ff;outline-offset:3px}
+@media(max-width:760px){.editor-file{width:100%}.editor-file strong{max-width:100%}.toolbar-actions{flex-wrap:wrap}.brand-copy strong{font-size:15px}.top-actions .btn{font-size:12px;padding:8px 10px}.thumb-remove{opacity:1}}

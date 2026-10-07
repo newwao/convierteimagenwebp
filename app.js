@@ -151,6 +151,7 @@ async function refreshSelected(makePreview=false){
   E.selectedSaving.textContent=item.blob?`${Math.round((1-item.blob.size/item.file.size)*100)}%`:"—";
   E.selectedOutputDims.textContent=item.outW?`${item.outW}×${item.outH}`:"—";
   E.downloadSelectedBtn.disabled=!item.blob;
+  $("#copyImageBtn").disabled=false;
   $$(".thumb-card").forEach(c=>c.classList.toggle("active",c.dataset.id===item.id));
   await drawOriginal(item);
   if(item.blob) await drawConverted(item.convertedUrl);
@@ -273,13 +274,13 @@ function clearAll(){[...items].forEach(x=>removeItem(x.id));E.thumbRail.innerHTM
 function setCompare(){
   const v=Number(E.compareSlider.value);
   E.convertedClip.style.width=`${100-v}%`;E.convertedClip.style.left=`${v}%`;
-  E.convertedCanvas.style.left=`-${v}%`;E.compareDivider.style.left=`${v}%`
+  E.convertedCanvas.style.left=`-${E.panLayer.clientWidth*v/100}px`;E.compareDivider.style.left=`${v}%`
 }
-function fitImage(){const c=E.originalCanvas;if(!c.width||!c.height)return;const r=E.compareStage.getBoundingClientRect();fitScale=Math.min((r.width-30)/c.width,(r.height-30)/c.height,1);zoom=1;applyImageSize()}
+function fitImage(){const c=E.originalCanvas;if(!c.width||!c.height)return;const r=E.compareStage.getBoundingClientRect();fitScale=Math.max(.001,Math.min((r.width-30)/c.width,(r.height-30)/c.height,1));zoom=1;applyImageSize()}
 function applyImageSize(){
   const c=E.originalCanvas;if(!c.width||!c.height)return;const scale=fitScale*zoom,w=Math.max(1,Math.round(c.width*scale)),h=Math.max(1,Math.round(c.height*scale));
   [E.originalCanvas,E.convertedCanvas].forEach(x=>{x.style.width=`${w}px`;x.style.height=`${h}px`});
-  E.panLayer.style.width=`${w}px`;E.panLayer.style.height=`${h}px`;E.zoomLabel.textContent=`${Math.round(zoom*100)}%`;requestAnimationFrame(setCompare)
+  E.panLayer.style.width=`${w}px`;E.panLayer.style.height=`${h}px`;E.zoomLabel.textContent=`${Math.round(scale*100)}%`;requestAnimationFrame(setCompare)
 }
 function setZoom(v){zoom=Math.max(.25,Math.min(4,v));applyImageSize()}
 
@@ -312,7 +313,7 @@ async function makeZip(entries){
 async function downloadZip(){
   const arr=items.filter(x=>x.blob);if(!arr.length)return;E.downloadZipBtn.disabled=true;E.downloadZipBtn.textContent="Creando ZIP…";
   const used=new Set(),entries=arr.map((x,index)=>({name:outputFileName(x,index,used),blob:x.blob}));
-  const zip=await makeZip(entries);downloadBlob(zip,"webp-studio-v3-lote.zip");E.downloadZipBtn.textContent="Descargar ZIP";E.downloadZipBtn.disabled=false
+  const zip=await makeZip(entries);downloadBlob(zip,"webp-studio-v3.3-lote.zip");E.downloadZipBtn.textContent="Descargar ZIP";E.downloadZipBtn.disabled=false
 }
 
 
@@ -419,3 +420,35 @@ window.addEventListener("resize",()=>selected()&&fitImage());
 
 refreshSettingUI();refreshRenamePreview();refreshSummary();renderPresets();
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+
+// v3.3: accessible help and clipboard controls.
+const helpDialog=$("#helpDialog");
+$("#helpBtn").onclick=()=>helpDialog.showModal();
+helpDialog.addEventListener("click",e=>{if(e.target===helpDialog){const r=helpDialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)helpDialog.close()}});
+let noticeTimer,clipboardSequence=0;
+function notifyUser(message){const n=$("#appNotice");n.textContent=message;n.classList.remove("hidden");clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>n.classList.add("hidden"),6500)}
+async function importClipboardImages(blobs){
+  const supported=blobs.filter(b=>/^image\/(png|jpeg|webp)$/i.test(b.type));
+  if(!supported.length){notifyUser("No hay una imagen JPG, PNG o WebP en el portapapeles. Copia una imagen o una captura, no su enlace.");return}
+  try{await addFiles(supported.map(b=>new File([b],`imagen-pegada-${Date.now()}-${++clipboardSequence}.${extFor(b.type)}`,{type:b.type,lastModified:Date.now()})));notifyUser(`${supported.length} imagen(es) pegada(s).`)}
+  catch(err){notifyUser("No se pudo abrir la imagen del portapapeles. Prueba seleccionando el archivo.")}
+}
+document.addEventListener("paste",e=>{
+  if(helpDialog.open||e.target.closest?.("input,textarea,[contenteditable='true']"))return;
+  const files=[...(e.clipboardData?.items||[])].filter(i=>i.kind==="file"&&i.type.startsWith("image/")).map(i=>i.getAsFile()).filter(Boolean);
+  if(files.length){e.preventDefault();void importClipboardImages(files)}
+});
+$("#pasteBtn").onclick=async()=>{
+  if(!navigator.clipboard?.read){notifyUser("Usa Ctrl + V (⌘ + V en Mac) o selecciona un archivo. El botón Pegar requiere HTTPS o localhost y un navegador compatible.");return}
+  try{const entries=await navigator.clipboard.read(),blobs=[];for(const entry of entries){const type=entry.types.find(t=>/^image\/(png|jpeg|webp)$/i.test(t));if(type)blobs.push(await entry.getType(type))}await importClipboardImages(blobs)}
+  catch(err){notifyUser("No se pudo leer el portapapeles. Permite el acceso o pega con Ctrl + V (⌘ + V en Mac).")}
+};
+$("#copyImageBtn").onclick=async()=>{
+  const item=selected();if(!item)return;
+  if(!navigator.clipboard?.write||!window.ClipboardItem){notifyUser("Copiar requiere HTTPS o localhost y un navegador compatible. Puedes descargar la imagen.");return}
+  try{
+    const png=(async()=>{const canvas=document.createElement("canvas");await drawBitmapToCanvas(item.convertedUrl||item.originalUrl,canvas,item.blob?0:item.rotation);return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("PNG")),"image/png"))})();
+    await navigator.clipboard.write([new ClipboardItem({"image/png":png})]);notifyUser(item.blob?"Resultado copiado como PNG. Ya puedes pegarlo.":"Imagen original copiada como PNG. Ya puedes pegarla.");
+  }catch(err){notifyUser("No se pudo copiar. Permite el acceso al portapapeles o descarga la imagen.")}
+};
+if(window.ResizeObserver)new ResizeObserver(()=>{if(selected()&&zoom===1)fitImage()}).observe(E.compareStage);

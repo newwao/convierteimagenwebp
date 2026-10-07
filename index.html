@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080d18">
-  <title>WebP Studio v3</title>
+  <title>WebP Studio v3.3</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -14,11 +14,13 @@
     <div class="brand">
       <div class="brand-mark">W</div>
       <div class="brand-copy">
-        <strong>WebP Studio <span class="version">v3</span></strong>
+        <strong>WebP Studio <span class="version">v3.3</span></strong>
         <span>Batch Image Optimizer</span>
       </div>
     </div>
     <div class="top-actions">
+      <button id="helpBtn" class="btn btn-ghost" aria-haspopup="dialog">? Ayuda</button>
+      <button id="pasteBtn" class="btn btn-ghost">Pegar imagen</button>
       <span id="engineBadge" class="engine-badge">Detectando motor…</span>
       <span class="privacy-pill">🔒 100% local</span>
       <button id="addMoreBtn" class="btn btn-ghost" disabled>+ Agregar</button>
@@ -39,7 +41,7 @@
           </div>
           <span class="eyebrow">OPTIMIZADOR POR LOTES</span>
           <h1>Convierte y optimiza imágenes con una experiencia tipo Squoosh</h1>
-          <p>Arrastra múltiples JPG, PNG o WebP. Ajusta calidad, tamaño, rotación y compara el resultado antes de descargar.</p>
+          <p>Arrastra múltiples JPG, PNG o WebP. También puedes pegar con Ctrl + V (⌘ + V en Mac). Ajusta calidad, tamaño, rotación y compara el resultado antes de descargar.</p>
           <button id="selectBtn" class="btn btn-primary btn-large">Seleccionar imágenes</button>
           <small>Privacidad: tus archivos nunca salen de este dispositivo.</small>
         </div>
@@ -95,6 +97,7 @@
           <div class="selected-actions">
             <button id="refreshPreviewBtn" class="btn btn-ghost">Actualizar vista previa</button>
             <button id="convertSelectedBtn" class="btn btn-primary">Convertir</button>
+            <button id="copyImageBtn" class="btn btn-ghost" disabled>Copiar imagen</button>
             <button id="downloadSelectedBtn" class="btn btn-success" disabled>Descargar</button>
           </div>
         </div>
@@ -288,6 +291,21 @@
     </article>
   </template>
 
+  <div id="appNotice" class="app-notice hidden" role="status" aria-live="polite"></div>
+  <dialog id="helpDialog" aria-labelledby="helpTitle">
+    <div class="help-head"><div><span class="eyebrow">WEBP STUDIO · VERSIÓN 3.3</span><h2 id="helpTitle">Guía de uso</h2></div><form method="dialog"><button class="btn btn-ghost" aria-label="Cerrar ayuda" autofocus>× Cerrar</button></form></div>
+    <ol class="help-steps">
+      <li><strong>Abre tus imágenes.</strong> Selecciona o arrastra archivos JPG, PNG o WebP. Usa «+ Agregar» para ampliar el lote.</li>
+      <li><strong>Copia y pega.</strong> Copia una imagen o una captura y pulsa Ctrl + V (⌘ + V en Mac), o «Pegar imagen». Copia la imagen, no solo su enlace. Si estás escribiendo en un campo de texto, haz clic fuera antes de pegar.</li>
+      <li><strong>Revisa la imagen completa.</strong> Cada imagen se abre ajustada al visor. Usa + y − para acercar o alejar, y «Ajustar» para verla completa. El porcentaje indica la escala real respecto al original.</li>
+      <li><strong>Optimiza.</strong> Elige WebP, JPEG o PNG y ajusta la calidad. PNG no usa el control de calidad. Activa «Redimensionar» si deseas reducir las dimensiones. JPEG no conserva transparencia: elige un fondo blanco o negro.</li>
+      <li><strong>Compara y gira.</strong> Mueve el separador para comparar original y resultado. Usa las flechas de giro para rotar 90°. La vista previa automática refleja tus ajustes.</li>
+      <li><strong>Organiza los nombres.</strong> Conserva el nombre original, usa uno común o reemplaza texto. Puedes añadir prefijo, sufijo y numeración. Desmarca la numeración si no la necesitas.</li>
+      <li><strong>Convierte y descarga.</strong> Pulsa «Convertir» y «Descargar» para una imagen; «Convertir todas» y «Descargar ZIP» para el lote. «Copiar imagen» copia el resultado convertido, o el original si aún no lo convertiste, en PNG para pegarlo en otras aplicaciones.</li>
+      <li><strong>Guarda tus ajustes.</strong> «Guardar actual» crea un preset en este navegador. «Limpiar» quita el lote; no borra tus archivos originales.</li>
+    </ol>
+    <p class="help-note">El procesamiento es local. Los botones del portapapeles requieren un navegador compatible y HTTPS o localhost, y pueden pedir permiso. Si «Pegar imagen» no está disponible, prueba Ctrl + V o selecciona el archivo. Para conservar el formato WebP/JPEG, usa «Descargar».</p>
+  </dialog>
   <script src="app.js"></script>
 </body>
 </html>
